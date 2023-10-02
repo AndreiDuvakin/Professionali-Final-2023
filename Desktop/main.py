@@ -1,12 +1,12 @@
 import datetime
 import sys
 
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, QDate
 from PyQt5.QtGui import QPixmap
 from requests import post
 from PyQt5 import uic
 
-from API.db.connect import Staff, Clients, Services
+from API.db.connect import Staff, Clients, Services, OrdersServices
 from captcha import main_capt
 from json import loads, dumps
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -14,7 +14,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from db.connect import connect, init_data, Orders
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QLineEdit, QMessageBox, QTableWidget, \
-    QCompleter, QFileDialog, QCheckBox, QComboBox, QListWidget, QListWidgetItem
+    QCompleter, QFileDialog, QCheckBox, QComboBox, QListWidget, QListWidgetItem, QDateEdit
 
 login = None
 data = None
@@ -175,6 +175,7 @@ class MainWin(QMainWindow):
         elif data[4] == 2:
             self.pushButton.setText("Просмотр отчетов")
             self.pushButton_2.setText("Формирование счета")
+            self.pushButton_2.clicked.connect(self.pay)
             self.pushButton_3.setVisible(False)
             self.pushButton_4.setVisible(False)
         elif data[4] == 3:
@@ -183,6 +184,10 @@ class MainWin(QMainWindow):
             self.pushButton_3.setText("Данные о расходных материалах")
             self.pushButton_4.setText("История входа")
             self.pushButton_4.clicked.connect(self.loggs_win)
+
+    def pay(self):
+        self.py = PayRec()
+        self.py.show()
 
     def order(self):
         self.ord = OrderWin()
@@ -210,9 +215,23 @@ class MainWin(QMainWindow):
             self.ms.show()
             self.log_win.show()
             self.log_win.log_block()
-            self.close()
+            self.destroy()
         self.label_6.setText(
             f'{str(self.time // 60)}:{"" if len(str(self.time % 60)) == 2 else "0"}{str(self.time % 60)}')
+
+
+class PayRec(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('win/InvoWin.ui', self)
+        self.pushButton.clicked.connect(self.make_org)
+        self.pushButton_2.clicked.connect(self.make_poup)
+
+    def make_org(self):
+        pass
+
+    def make_org(self):
+        pass
 
 
 class LogsWin(QMainWindow):
@@ -279,15 +298,16 @@ class LogsWin(QMainWindow):
 class OrderWin(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.ms = None
         uic.loadUi('win/OrdersWin.ui', self)
         self.pushButton_5.clicked.connect(self.close)
         con = connect()
-        self.last_order = con.query(Orders).first().id
+        self.last_order = max(con.query(Orders.id).all())[0]
         self.lineEdit.setPlaceholderText(str(self.last_order + 1))
         self.clients = con.query(Clients).all()
         self.comboBox.addItems([f"{i.surname} {i.name}" for i in self.clients])
-        services = con.query(Services).all()
-        self.services = []
+        self.services = con.query(Services).all()
+        services = []
         self.serv_dict = {}
         for i in services:
             check = QCheckBox()
@@ -312,6 +332,33 @@ class OrderWin(QMainWindow):
         self.checkBox.stateChanged.connect(self.client)
         self.lineEdit.returnPressed.connect(self.entr)
         self.pushButton.clicked.connect(self.conf)
+        self.pushButton_2.clicked.connect(self.add_user)
+
+    def add_user(self):
+        try:
+            client = Clients(
+                name=self.lineEdit_9.text(),
+                surname=self.lineEdit_10.text(),
+                login=self.lineEdit_3.text(),
+                password=self.lineEdit_4.text(),
+                patronymic=self.lineEdit_14.text(),
+                birthday=self.dateEdit_2.date().toPyDate(),
+                serial=self.lineEdit_15.text(),
+                number=self.lineEdit_13.text()
+            )
+            con = connect()
+            con.add(client)
+            con.commit()
+            con.close()
+            self.checkBox.setChecked(False)
+            self.clients.append(client)
+            self.comboBox.addItem(f'{client.surname} {client.name}')
+        except Exception as e:
+            print(e)
+            self.ms = QMessageBox()
+            self.ms.setWindowTitle('Ошибка заполнения формы')
+            self.ms.setText('Данные пользователя заполнены неправильно')
+            self.ms.show()
 
     def conf(self):
         im = Image.new('RGB', (950, 950), (255, 255, 255))
@@ -324,7 +371,7 @@ class OrderWin(QMainWindow):
                 str(round(self.sum, 2)) + ' руб.']
         start_x = 10
         start_y = 10
-        font = ImageFont.truetype('Loma.ttf', 30)
+        font = ImageFont.truetype('Ubuntu-Th.ttf', 30)
         for i in range(len(lst)):
             if i != 5:
                 draw.text((start_x, start_y), lst[i] + ': ' + lst2[i], font=font, fill='black')
@@ -336,20 +383,46 @@ class OrderWin(QMainWindow):
                     draw.text((start_x + 40, start_y), j.name, font=font, fill='black')
                     start_y += 35
 
-        path = QFileDialog.getExistingDirectory(parent=self, caption='Выберите путь сохранения', directory='~')
+        path = QFileDialog.getExistingDirectory(parent=self, caption='Выберите путь сохранения', directory='~', )
         im.save(path + '/Заказ.pdf')
         with open(path + '/Ссылка.txt', 'w', encoding='utf-8') as file:
             st = '\n'.join([str(lst[i]) + ': ' + str(lst2[i]) if i != 5 else str(lst[i]) + ':\n ' + '\n'.join(
                 [j.name for j in lst2[i]]) for i in range(len(lst))])
             file.write(st)
+        con = connect()
+        order = Orders(
+            id=int(self.lineEdit.text()),
+            date=datetime.date.today(),
+            client_id=list(filter(lambda x:
+                                  x.surname == self.comboBox.currentText().split()[0] and x.name ==
+                                  self.comboBox.currentText().split()[1], self.clients))[0].id
+        )
+        con.add(order)
+        con.commit()
+        services = list(filter(lambda x: x.isChecked(), self.services))
+        for i in services:
+            or_serv = OrdersServices(
+                service_id=self.serv_dict[i].id,
+                order_id=int(self.lineEdit.text())
+            )
+            con.add(or_serv)
+        con.commit()
+        con.close()
+        self.ms = QMessageBox()
+        self.ms.setWindowTitle('Заказ создан')
+        self.ms.setText('Новый заказ успешно создан')
+        self.ms.show()
+        self.destroy()
 
     def find(self):
         self.listWidget.clear()
         con = connect()
         services = con.query(Services).all()
         self.serv_dict = {}
+        self.services = []
         for i in services:
-            if self.lineEdit_2.text().lower().strip() in i.name.lower().strip() or i.name.lower().strip() in self.lineEdit_2.text().lower().strip():
+            if (self.lineEdit_2.text().lower().strip()
+                    in i.name.lower().strip() or i.name.lower().strip() in self.lineEdit_2.text().lower().strip()):
                 check = QCheckBox()
                 check.stateChanged.connect(self.sums)
                 check.setText(i.name)
@@ -388,7 +461,7 @@ class OrderWin(QMainWindow):
 
     def lets_bar(self):
         from barcode import generate_code, draw_code
-        path = QFileDialog.getExistingDirectory(parent=self, caption='Выбирете путь слхранения', directory='~')
+        path = QFileDialog.getExistingDirectory(parent=self, caption='Выбирете путь сохранения', directory='~')
         draw_code(generate_code(), path)
         self.label_2.setPixmap(QPixmap(path + '/barcode.pdf'))
         self.lineEdit.setEnabled(False)

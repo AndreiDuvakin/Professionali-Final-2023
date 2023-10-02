@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="static/css/login.css">
+    <title>Утилизаторы</title>
+</head>
+<body>
+<div class="main">
+    <div class="u_div">
+        {% for u in utils %}
+        <a class="link_u" href="/util/{{u.id}}">
+        <div class="ut">
+            <h3 class="h3_u">Утилизатор: {{u.name}}</h3>
+        </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+</body>
+</html>

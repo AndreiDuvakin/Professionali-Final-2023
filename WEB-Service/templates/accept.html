@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Результаты исследования</title>
+</head>
+<body>
+    <div class="main">
+        <h2 style="color: rgb(73, 140,81);">Результаты исследования</h2>
+        <p style="color: rgb(73, 140,81);">
+            плотность отходов после утилизации: {{znach[0]}} <br>
+            дисперсность отходов: {{znach[1]}} <br>
+            дисперсность отходов: {{znach[2]}} <br>
+            дисперсность отходов: {{znach[3]}} <br>
+            концентрация едкого калия: {{znach[4]}} <br>
+            концентрация тяжелых металлов: {{znach[5]}}
+        </p>
+        {% if otkl >=5 %}
+        <div style="color: rgb(255, 0,0);">
+            <h3>Внимание, отклонение в {{otkl}} раз</h3>
+        </div>
+        {% endif %}
+        <a href="/{{order_id}}/{{serv_id}}/accept" style="color: rgb(73, 140,81);">Принять</a>
+        <a href="/{{order_id}}/{{serv_id}}/reject" style="color: rgb(255, 0,0);">Отклонить</a>
+    </div>
+<style>
+.main, body {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+    .main_h {
+        color: rgb(73, 140,81);
+    }
+</style>
+</body>
+</html>

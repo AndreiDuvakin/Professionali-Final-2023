@@ -423,6 +423,30 @@ QPushButton{
         <widget class="QLineEdit" name="lineEdit_9"/>
        </item>
        <item>
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Логин</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEdit_3"/>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Пароль</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEdit_4">
+         <property name="echoMode">
+          <enum>QLineEdit::Password</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="label_18">
          <property name="text">
           <string>Отчество</string>
@@ -480,37 +504,6 @@ QPushButton{
         <widget class="QLineEdit" name="lineEdit_13">
          <property name="inputMask">
           <string>000000</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_14">
-         <property name="text">
-          <string>Телефон</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="lineEdit_12">
-         <property name="inputMask">
-          <string>+7 (000) 000-00-00</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_13">
-         <property name="text">
-          <string>Почта</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="lineEdit_11">
-         <property name="text">
-          <string/>
-         </property>
-         <property name="frame">
-          <bool>true</bool>
          </property>
         </widget>
        </item>

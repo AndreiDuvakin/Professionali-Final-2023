@@ -45,7 +45,7 @@ def draw_code(code: str, path: str):
     draw.line((start_x + (round(0.2 * MM_PIXEL) + round(1 * 0.15 * MM_PIXEL)), 50,
                start_x + (round(0.2 * MM_PIXEL) + round(1 * 0.15 * MM_PIXEL)), 550), fill='black',
               width=round(1 * 0.15 * MM_PIXEL))
-    font = ImageFont.truetype('Loma.ttf', 30)
+    font = ImageFont.truetype('Ubuntu-Th.ttf', 30)
     h1 = 1
     for i in code:
         if True not in [True if i2 - 30 <= long_lines[0] + 30 * h1 < i2 + 30 else False for i2 in long_lines]:

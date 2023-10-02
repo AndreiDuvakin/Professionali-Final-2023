@@ -12,7 +12,7 @@ def rndColor():
 
 def main_capt():
     image = Image.new('RGB', (240, 60), (255, 255, 255))
-    font = ImageFont.truetype('Loma.ttf', 50)
+    font = ImageFont.truetype('Ubuntu-Th.ttf', 50)
     draw = ImageDraw.Draw(image)
 
     for i in range(240):

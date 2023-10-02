@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{serv.name}}</title>
+</head>
+<body>
+<div class="main">
+    <h3 class="main_h">{{serv.name}} для заказа №{{order.id}}</h3>
+    {% if type == 1 %}
+    <h4 class="main_h">1 процесс</h4>
+    <p class="main_h">измельчение отходов, утилизация отходов путем закачки химических соединений-утилизаторов,
+        исследования отходов на остаточное содержание опасных веществ</p>
+    {% else %}
+    <h4 class="main_h">2 процесс</h4>
+    <p class="main_h">утилизация отходов путем закачки химических соединений-утилизаторов, исследования отходов на
+        остаточное содержание опасных веществ. </p>
+    {% endif %}
+    <div class="timer_bl">
+    <h4 class="main_h">Осталось:</h4> <h4 class="main_h" id="timer">{{tme}}</h4>
+    </div>
+    <span class="loader"></span>
+</div>
+</body>
+<style>
+    .main, body {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+    .main_h {
+        color: rgb(73, 140,81);
+    }
+    .timer_bl {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    }
+    .loader {
+    width: 48px;
+    height: 48px;
+    border: 5px solid #FFF;
+    border-bottom-color: rgb(73, 140,81);
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+    }
+
+    @keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+    } 
+</style>
+<script type="text/JavaScript">
+    var timer = setTimeout(function() {
+            window.location='http://127.0.0.1:5001/accept/{{order.id}}/{{serv.id}}'
+        }, {{tme}} * 1000);
+    var tme = {{tme}};
+    function updateCountdown() {
+        document.getElementById("timer").textContent = tme;
+        tme -= 1;
+    }
+    setInterval(updateCountdown, 1000);
+</script>
+</html>

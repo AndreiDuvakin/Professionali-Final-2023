@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">>
+    <link rel="stylesheet" href="../static/css/util.css">
+    <title>Утилизатор {{ut.name}}</title>
+</head>
+<body>
+<div class="main">
+    <h2 style="color: rgb(73, 140,81);">Утилизатор {{ut.name}}</h2>
+    <h3 style="color: rgb(73, 140,81);">Доступные услуги</h3>
+    <div class="u_div">
+        {% for u in serv %}
+        <a class="link_u" href="/serv/{{u[1].id}}/{{u[0].id}}">
+        <div class="ut">
+            <h4>Заказ №{{u[1].id}}</h4>
+            <h5 class="h3_u">{{u[0].name}}</h5>
+            <h3>Отправить</h3>
+        </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+</body>
+</html>

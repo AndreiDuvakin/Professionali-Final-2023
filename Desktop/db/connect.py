@@ -68,6 +68,7 @@ class Utilizators(base):
 
     id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
     name = sq.Column(sq.String)
+    free = sq.Column(sq.Boolean, default=True)
 
 
 class Types(base):
@@ -130,6 +131,7 @@ class OrdersServices(base):
     service_id = sq.Column(sq.Integer, sq.ForeignKey('services.id'))
     order_id = sq.Column(sq.Integer, sq.ForeignKey('orders.id'))
     archive = sq.Column(sq.Boolean, default=False)
+    status_id = sq.Column(sq.Integer, sq.ForeignKey('service_statuses.id'))
 
 
 class PayReciept(base):
@@ -142,9 +144,41 @@ class PayReciept(base):
     archive = sq.Column(sq.Boolean, default=False)
 
 
+class UtilizatorHistories(base):
+    __tablename__ = 'utilizator_histories'
+
+    id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
+    result = sq.Column(sq.TEXT)
+    type_utilizatoin = sq.Column(sq.Boolean)
+    order_id = sq.Column(sq.Integer, sq.ForeignKey('orders.id'))
+    staff_id = sq.Column(sq.Integer, sq.ForeignKey('staff.id'))
+
+
+class ServiceStatuses(base):
+    __tablename__ = 'service_statuses'
+
+    id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
+    name = sq.Column(sq.TEXT)
+
+
+class Reports(base):
+    __tablename__ = 'reports'
+
+    id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
+    order_id = sq.Column(sq.Integer, sq.ForeignKey('orders.id'))
+    staff_id = sq.Column(sq.Integer, sq.ForeignKey('staff.id'))
+    service_id = sq.Column(sq.Integer, sq.ForeignKey('services.id'))
+    density = sq.Column(sq.Float)
+    dispersion = sq.Column(sq.Float)
+    mercury_con = sq.Column(sq.Float)
+    creosol_con = sq.Column(sq.Float)
+    potassium_con = sq.Column(sq.Float)
+    heavy_met_con = sq.Column(sq.Float)
+
+
 def init_data():
     global __factory
-    eng = create_engine('postgresql+pg8000://postgres:4951@localhost:5432/session_1')
+    eng = create_engine('postgresql+pg8000://postgres:4951@localhost:5432/professionals')
     __factory = orm.sessionmaker(bind=eng)
     base.metadata.create_all(eng)
 
