@@ -6,7 +6,7 @@ from PyQt5.QtGui import QPixmap
 from requests import post
 from PyQt5 import uic
 
-from API.db.connect import Staff, Clients, Services, OrdersServices
+from API.db.connect import Staff, Clients, Services, OrdersServices, Organizations
 from captcha import main_capt
 from json import loads, dumps
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -195,7 +195,7 @@ class MainWin(QMainWindow):
 
     def back(self):
         self.log_win.show()
-        self.destroy()
+        self.close()
 
     def loggs_win(self):
         self.loggs = LogsWin()
@@ -215,7 +215,7 @@ class MainWin(QMainWindow):
             self.ms.show()
             self.log_win.show()
             self.log_win.log_block()
-            self.destroy()
+            self.close()
         self.label_6.setText(
             f'{str(self.time // 60)}:{"" if len(str(self.time % 60)) == 2 else "0"}{str(self.time % 60)}')
 
@@ -228,10 +228,105 @@ class PayRec(QMainWindow):
         self.pushButton_2.clicked.connect(self.make_poup)
 
     def make_org(self):
-        pass
+        con = connect()
+        ord_serv = list(filter(lambda x: con.query(Clients).filter(Clients.id == con.query(Orders).filter(
+            Orders.id == x.order_id).first().client_id).first().organization_id is not None,
+                               con.query(OrdersServices).filter(OrdersServices.status_id == 3).all()))
+        ord_serv = list(filter(lambda x: self.dateEdit.date().toPyDate() <= con.query(Orders).filter(
+            Orders.id == x.order_id).first().date <= self.dateEdit_2.date().toPyDate(), ord_serv))
+        path = QFileDialog.getExistingDirectory(parent=self, caption='Выберите путь сохранения', directory='~', )
+        im = Image.new('RGB', (950, 950), (255, 255, 255))
+        draw = ImageDraw.Draw(im)
+        start_x = 10
+        start_y = 10
+        font = ImageFont.truetype('Ubuntu-Th.ttf', 30)
+        ord_serv.sort(key=lambda x: con.query(Clients).filter(Clients.id == con.query(Orders).filter(
+            Orders.id == x.order_id).first().client_id).first().organization_id)
+        org = None
+        summ = 0
+        comp = {}
+        for i in ord_serv:
+            name = con.query(Organizations).filter(
+                Organizations.id == con.query(Clients).filter(Clients.id == con.query(Orders).filter(
+                    Orders.id == i.order_id).first().client_id).first().organization_id).first().name
+            serv = con.query(Services).filter(Services.id == i.service_id).first()
+            order = con.query(Orders).filter(Orders.id == i.order_id).first()
+            if name in comp:
+                comp[name].append([serv.price, serv.name, order.date])
+            else:
+                comp[name] = []
+                comp[name].append([serv.price, serv.name, order.date])
+        draw.text((start_x + 300, start_y),
+                  f"Счет на услуги предприятиям",
+                  font=font,
+                  fill='black')
+        start_y += 55
+        for i in comp:
+            draw.text((start_x, start_y),
+                      f"Организация: {i}, сумма  к оплате: {str(sum(list(map(lambda x: x[0], comp[i]))))}руб.",
+                      font=font,
+                      fill='black')
+            start_y += 35
+            for j in comp[i]:
+                draw.text((start_x, start_y), f"Услуга: {j[1]}", font=font, fill='black')
+                start_y += 35
+                draw.text((start_x, start_y), f"Стоимость: {j[0]}руб.", font=font, fill='black')
+                start_y += 35
+                draw.text((start_x, start_y), f"Дата: {j[2].strftime('%d.%m.%Y')}", font=font, fill='black')
+                start_y += 35
+                start_y += 25
+            start_y += 95
+        im.save(path + '/Отчет.pdf')
 
-    def make_org(self):
-        pass
+    def make_poup(self):
+        con = connect()
+        ord_serv = list(filter(lambda x: con.query(Clients).filter(Clients.id == con.query(Orders).filter(
+            Orders.id == x.order_id).first().client_id).first().organization_id is None,
+                               con.query(OrdersServices).filter(OrdersServices.status_id == 3).all()))
+        ord_serv = list(filter(lambda x: self.dateEdit.date().toPyDate() <= con.query(Orders).filter(
+            Orders.id == x.order_id).first().date <= self.dateEdit_2.date().toPyDate(), ord_serv))
+        path = QFileDialog.getExistingDirectory(parent=self, caption='Выберите путь сохранения', directory='~', )
+        im = Image.new('RGB', (950, 950), (255, 255, 255))
+        draw = ImageDraw.Draw(im)
+        start_x = 10
+        start_y = 10
+        font = ImageFont.truetype('Ubuntu-Th.ttf', 30)
+        org = None
+        summ = 0
+        comp = {}
+        print(ord_serv)
+        for i in ord_serv:
+            name = con.query(Clients).filter(Clients.id == con.query(Orders).filter(
+                Orders.id == i.order_id).first().client_id).first()
+            name = f"{name.surname} {name.name}"
+            serv = con.query(Services).filter(Services.id == i.service_id).first()
+            order = con.query(Orders).filter(Orders.id == i.order_id).first()
+            if name in comp:
+                comp[name].append([serv.price, serv.name, order.date])
+            else:
+                comp[name] = []
+                comp[name].append([serv.price, serv.name, order.date])
+        draw.text((start_x + 300, start_y),
+                  f"Счет на услуги частному лицу",
+                  font=font,
+                  fill='black')
+        start_y += 55
+        for i in comp:
+            draw.text((start_x, start_y),
+                      f"{i}, сумма  к оплате: {str(sum(list(map(lambda x: x[0], comp[i]))))}руб.",
+                      font=font,
+                      fill='black')
+            start_y += 35
+            for j in comp[i]:
+                draw.text((start_x, start_y), f"Услуга: {j[1]}", font=font, fill='black')
+                start_y += 35
+                draw.text((start_x, start_y), f"Стоимость: {j[0]}руб.", font=font, fill='black')
+                start_y += 35
+                draw.text((start_x, start_y), f"Дата: {j[2].strftime('%d.%m.%Y')}", font=font, fill='black')
+                start_y += 35
+                start_y += 25
+            start_y += 95
+        im.save(path + '/Отчет.pdf')
 
 
 class LogsWin(QMainWindow):
@@ -306,8 +401,8 @@ class OrderWin(QMainWindow):
         self.lineEdit.setPlaceholderText(str(self.last_order + 1))
         self.clients = con.query(Clients).all()
         self.comboBox.addItems([f"{i.surname} {i.name}" for i in self.clients])
-        self.services = con.query(Services).all()
-        services = []
+        self.services = []
+        services = con.query(Services).all()
         self.serv_dict = {}
         for i in services:
             check = QCheckBox()
@@ -328,11 +423,56 @@ class OrderWin(QMainWindow):
         self.pushButton.setVisible(False)
         self.pushButton_2.setVisible(False)
         self.lineEdit_2.setVisible(False)
-        self.lineEdit_2.textChanged.connect(self.find)
+        self.lineEdit_5.setVisible(False)
+        self.checkBox_2.setVisible(False)
+        self.lineEdit_5.textChanged.connect(self.n_find)
+        self.lineEdit_2.textChanged.connect(self.select_find)
         self.checkBox.stateChanged.connect(self.client)
         self.lineEdit.returnPressed.connect(self.entr)
         self.pushButton.clicked.connect(self.conf)
         self.pushButton_2.clicked.connect(self.add_user)
+        self.checkBox_2.stateChanged.connect(self.select_find)
+
+    def select_find(self):
+        if self.checkBox_2.isChecked():
+            self.find()
+        else:
+            self.norm_find()
+
+    def norm_find(self):
+        self.listWidget.clear()
+        con = connect()
+        services = con.query(Services).all()
+        self.serv_dict = {}
+        self.services = []
+        for i in services:
+            if (self.lineEdit_2.text().lower().strip()
+                    in i.name.lower().strip() or i.name.lower().strip() in self.lineEdit_2.text().lower().strip()):
+                check = QCheckBox()
+                check.stateChanged.connect(self.sums)
+                check.setText(i.name)
+                item = QListWidgetItem()
+                self.services.append(check)
+                self.serv_dict[check] = i
+                self.listWidget.addItem(item)
+                self.listWidget.setItemWidget(item, check)
+        con.close()
+
+    def n_find(self):
+        try:
+            clients_len = {}
+            for i in self.clients:
+                h = 0
+                for j in range(len(i.name if len(i.name.lower().strip()) < len(
+                        self.lineEdit_5.text().lower().strip()) else self.lineEdit_5.text())):
+                    h += 1 if i.name[j] != self.lineEdit_5.text()[j] else 0
+                clients_len[i.name] = h + abs(len(self.lineEdit_5.text()) - len(i.name))
+            fnd = list(filter(lambda x: x[1] < 3, sorted(clients_len.items(), key=lambda x: x[1])))
+            if fnd:
+                cls = list(filter(lambda x: x.name == fnd[0][0], self.clients))[0]
+                self.comboBox.setCurrentText(f"{cls.surname} {cls.name}")
+        except Exception as e:
+            pass
 
     def add_user(self):
         try:
@@ -412,7 +552,7 @@ class OrderWin(QMainWindow):
         self.ms.setWindowTitle('Заказ создан')
         self.ms.setText('Новый заказ успешно создан')
         self.ms.show()
-        self.destroy()
+        self.close()
 
     def find(self):
         self.listWidget.clear()
@@ -420,12 +560,18 @@ class OrderWin(QMainWindow):
         services = con.query(Services).all()
         self.serv_dict = {}
         self.services = []
+        clients_len = {}
         for i in services:
-            if (self.lineEdit_2.text().lower().strip()
-                    in i.name.lower().strip() or i.name.lower().strip() in self.lineEdit_2.text().lower().strip()):
+            h = 0
+            for j in range(len(i.name if len(i.name.lower().strip()) < len(
+                    self.lineEdit_2.text().lower().strip()) else self.lineEdit_2.text())):
+                h += 1 if i.name[j] != self.lineEdit_2.text()[j] else 0
+            clients_len[i.name] = h + abs(len(self.lineEdit_2.text()) - len(i.name))
+        for i in clients_len:
+            if clients_len[i] <= 3 or self.lineEdit_2.text() == '':
                 check = QCheckBox()
                 check.stateChanged.connect(self.sums)
-                check.setText(i.name)
+                check.setText(i)
                 item = QListWidgetItem()
                 self.services.append(check)
                 self.serv_dict[check] = i
@@ -447,11 +593,13 @@ class OrderWin(QMainWindow):
             self.groupBox.setVisible(True)
             self.pushButton.setVisible(False)
             self.pushButton_2.setVisible(True)
+            self.lineEdit_5.setVisible(False)
         else:
             self.comboBox.setVisible(True)
             self.groupBox.setVisible(False)
             self.pushButton.setVisible(True)
             self.pushButton_2.setVisible(False)
+            self.lineEdit_5.setVisible(True)
 
     def entr(self):
         if self.lineEdit.text():
@@ -471,6 +619,8 @@ class OrderWin(QMainWindow):
         self.label_6.setVisible(True)
         self.pushButton.setVisible(True)
         self.lineEdit_2.setVisible(True)
+        self.lineEdit_5.setVisible(True)
+        self.checkBox_2.setVisible(True)
 
 
 def except_hook(cls, exception, traceback):

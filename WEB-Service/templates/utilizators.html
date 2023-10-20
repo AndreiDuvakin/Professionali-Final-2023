@@ -7,6 +7,9 @@
 </head>
 <body>
 <div class="main">
+    <a href="/reports" class="link_u" style="border: 2px solid rgb(73, 140,81);">
+        <h2 class="link_u">Отчеты</h2>
+    </a>
     <div class="u_div">
         {% for u in utils %}
         <a class="link_u" href="/util/{{u.id}}">
@@ -17,5 +20,16 @@
         {% endfor %}
     </div>
 </div>
+<style>
+    .link_u {
+    text-decoration: none;
+    color: rgb(73, 140,81);
+}
+.link_u:hover {
+    text-decoration: none;
+    background-color: rgb(73, 140,81);
+    color: white;
+}
+</style>
 </body>
 </html>

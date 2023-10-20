@@ -174,6 +174,7 @@ class Reports(base):
     creosol_con = sq.Column(sq.Float)
     potassium_con = sq.Column(sq.Float)
     heavy_met_con = sq.Column(sq.Float)
+    date = sq.Column(sq.DateTime)
 
 
 def init_data():
