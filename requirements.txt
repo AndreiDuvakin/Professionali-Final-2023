@@ -1,0 +1,7 @@
+flask==3.1.3
+sqlalchemy==2.0.50
+pyqt5
+pillow
+plotly
+numpy
+pandas
